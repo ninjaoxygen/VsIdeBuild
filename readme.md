@@ -5,6 +5,10 @@
 VsIdeBuild is a command line tool to automate the Visual Studio 2008 IDE to build solutions.
 This is necessary when GUI IDE plugins are required for the build process, for example when using Crestron's SDK.
 
+## Downloads
+
+The latest binary release is available from https://github.com/ninjaoxygen/VsIdeBuild/releases
+
 ## Contact
 
 E-mail: chris@avsp.co.uk

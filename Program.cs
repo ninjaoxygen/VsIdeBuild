@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * Copyright © 2017 AVSP Ltd
+ * Copyright © 2017 - 2019 AVSP Ltd
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,13 +50,11 @@ namespace VsIdeBuild
                 return 1;
             }
 
-            //@"C:\Dropbox\Code\CresNuget\BuildTest\BuildTest.sln"
-
             VsBuilder builder = new VsBuilder();
 
-            builder.Run(options);
+            int result = builder.Run(options);
 
-            if (builder.Results.Failed)
+            if ((result != 0) || builder.Results.Failed)
             {
                 Console.Error.WriteLine("ERROR: some builds failed, check output");
                 return 1;

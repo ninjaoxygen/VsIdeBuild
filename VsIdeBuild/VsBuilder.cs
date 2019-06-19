@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * Copyright © 2017 AVSP Ltd
+ * Copyright © 2017 - 2019 AVSP Ltd
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,6 +60,8 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// <returns></returns>
         public int Run(VsBuilderOptions options)
         {
+            int returnValue = 0;
+
             this.options = options;
             this.Results = new VsBuilderResults();
 
@@ -96,7 +98,11 @@ namespace VsIdeBuild.VsBuilderLibrary
                 Console.WriteLine(GetProjectContexts());
             }
 
-            ShowProjectOutputs();
+            if (options.ShowProjectOutputs)
+            {
+                Console.WriteLine("Showing project outputs...");
+                ShowProjectOutputs();
+            }
 
             if (options.BuildAll)
             {
@@ -108,6 +114,11 @@ namespace VsIdeBuild.VsBuilderLibrary
                 {
                     BuildSolutionConfiguration(options.BuildSolutionConfiguration);
                 }
+                else
+                {
+                    Console.WriteLine("ERROR: neither BuildAll or BuildSolutionConfiguration was specified");
+                    returnValue = 1;
+                }
             }
 
             Console.WriteLine("Closing Solution...");
@@ -116,7 +127,7 @@ namespace VsIdeBuild.VsBuilderLibrary
             Console.WriteLine("Closing Visual Studio...");
             CloseVS();
 
-            return 0;
+            return returnValue;
         }
 
         private void PostBuildChecks()

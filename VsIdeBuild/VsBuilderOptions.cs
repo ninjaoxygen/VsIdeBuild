@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * Copyright © 2017 AVSP Ltd
+ * Copyright © 2017 - 2019 AVSP Ltd
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,11 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// Output ProjectContexts, useful to get necessary command lines for build
         /// </summary>
         public bool ShowProjectContexts { get; set; }
+
+        /// <summary>
+        /// Output ProjectOutputs, useful to get configuration information
+        /// </summary>
+        public bool ShowProjectOutputs { get; set; }
 
         /// <summary>
         /// Filepath of Visual Studio 2008 solution file

@@ -15,7 +15,7 @@ E-mail: chris@avsp.co.uk
 
 ## Copyright
 
-VsIdeBuild is Copyright © 2017 AVSP Ltd
+VsIdeBuild is Copyright © 2017 - 2019 AVSP Ltd
 
 ## Command line parameters:
 

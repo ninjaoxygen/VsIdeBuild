@@ -115,7 +115,10 @@ namespace VsIdeBuild.VsBuilderLibrary
             {
                 if (options.BuildSolutionConfiguration != null)
                 {
-                    BuildSolutionConfiguration(options.BuildSolutionConfiguration);
+                    if (options.BuildProject != null)
+                        BuildProject(options.BuildSolutionConfiguration, GetProjectUniqueName( options.BuildProject ));
+                    else
+                        BuildSolutionConfiguration(options.BuildSolutionConfiguration);
                 }
                 else
                 {
@@ -173,16 +176,28 @@ namespace VsIdeBuild.VsBuilderLibrary
             PostBuildChecks();
         }
 
-        private void BuildProject(string solutionConfigurationName, string projectUniqueName)
+        /// <summary>
+        /// Return the unique name for the given project name
+        /// This is required for single project builds
+        /// </summary>
+        /// <param name="projectName">The common project name</param>
+        /// <returns>The corresponding unique project name, or the empty string if not found.</returns>
+        private string GetProjectUniqueName(string projectName)
         {
-            sln.SolutionBuild.BuildProject(solutionConfigurationName, projectUniqueName, true);
-
-            System.Threading.Thread.Sleep(1000);
-
-            PostBuildChecks();
+            foreach (Project project in dte.Solution.Projects)
+            {
+                if (project.Name.ToLower() == projectName.ToLower())
+                    return project.UniqueName;
+            }
+            return string.Empty;
         }
 
-        private void BuildSolutionConfiguration(string solutionConfigurationName)
+        /// <summary>
+        /// Refactored solution matching
+        /// </summary>
+        /// <param name="solutionConfigurationName">The solution config passed as an option</param>
+        /// <returns>A matching solution config, or null if no matches</returns>
+        private EnvDTE80.SolutionConfiguration2 IdentifyMatchingSolution(string solutionConfigurationName)
         {
             EnvDTE.SolutionConfigurations solutionConfigurations;
 
@@ -195,13 +210,51 @@ namespace VsIdeBuild.VsBuilderLibrary
                 if (solutionConfiguration2.Name == solutionConfigurationName)
                 {
                     Console.WriteLine("Matches, building...");
-                    BuildSolutionConfiguration(solutionConfiguration2);
+                    return solutionConfiguration2;
                 }
                 else
                 {
                     Console.WriteLine("Does not match, skipping");
                 }
             }
+            return null;
+        }
+
+        private void BuildProject(string solutionConfigurationName, string projectUniqueName)
+        {
+            SolutionConfiguration2 slnCfg = IdentifyMatchingSolution( solutionConfigurationName );
+            if( slnCfg == null )
+            {
+                Console.WriteLine( "No configurations matching " + solutionConfigurationName + " found.");
+                return;
+            }
+
+            if (options.Clean)
+            {
+                Console.WriteLine("Cleaning solution configuration '" + slnCfg.Name + "' platform '" + slnCfg.PlatformName + "'");
+                sln.SolutionBuild.Clean(true);
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            string buildConfig = slnCfg.Name + "|" + slnCfg.PlatformName;
+
+            Console.WriteLine("Building " + buildConfig + ":" + projectUniqueName);
+            sln.SolutionBuild.BuildProject(buildConfig, projectUniqueName, true);
+            System.Threading.Thread.Sleep(1000);
+
+            PostBuildChecks();
+        }
+
+        private void BuildSolutionConfiguration(string solutionConfigurationName)
+        {
+            SolutionConfiguration2 slnCfg = IdentifyMatchingSolution(solutionConfigurationName);
+            if (slnCfg == null)
+            {
+                Console.WriteLine("No configurations matching " + solutionConfigurationName + " found.");
+                return;
+            }
+
+            BuildSolutionConfiguration(slnCfg);
         }
 
         private void BuildAll()

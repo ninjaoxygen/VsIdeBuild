@@ -71,14 +71,17 @@ namespace VsIdeBuild.VsBuilderLibrary
             dte.SuppressUI = !options.Debug;
             dte.UserControl = options.Debug;
 
-            if (!File.Exists(options.Solution))
+            // Resolve the solution absolute filepath
+            string absSolutionFilePath = ResolveSolutionName(options.Solution);
+
+            if (!File.Exists(absSolutionFilePath))
             {
                 Console.WriteLine("Solution file not found");
                 return 1;
             }
 
             Console.WriteLine("Opening Solution...");
-            if (!OpenSolution(options.Solution))
+            if (!OpenSolution(absSolutionFilePath))
             {
                 Console.WriteLine("Solution could not be opened");
                 return 2;
@@ -387,6 +390,18 @@ namespace VsIdeBuild.VsBuilderLibrary
                     Console.WriteLine("      ConfigurationName = " + solutionContext.ConfigurationName); // you can write this too
                 }
             }
+        }
+
+        /// <summary>
+        /// Convert the given solution name to an absolute path, and add the .sln extension
+        /// </summary>
+        /// <param name="solutionFile">The solution filename from the arguments</param>
+        /// <returns>The absolute path to the full solution</returns>
+        private string ResolveSolutionName(string solutionFile)
+        {
+            string absPath = Path.GetDirectoryName(Path.GetFullPath(solutionFile));
+            string slnFileName = Path.GetFileNameWithoutExtension(solutionFile);
+            return Path.Combine(absPath, slnFileName + ".sln");
         }
 
         public bool OpenSolution(string solutionFile)

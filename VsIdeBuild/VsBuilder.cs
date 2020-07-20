@@ -87,6 +87,7 @@ namespace VsIdeBuild.VsBuilderLibrary
                 return 2;
             }
 
+#if DEBUG
             Console.WriteLine("Solution.Count = " + sln.Count);
 
             Console.WriteLine("Projects Names...");
@@ -94,6 +95,7 @@ namespace VsIdeBuild.VsBuilderLibrary
             {
                 Console.WriteLine("Project: " + project.Name);
             }
+#endif
 
             if (options.ShowProjectContexts)
             {
@@ -116,7 +118,15 @@ namespace VsIdeBuild.VsBuilderLibrary
                 if (options.BuildSolutionConfiguration != null)
                 {
                     if (options.BuildProject != null)
-                        BuildProject(options.BuildSolutionConfiguration, GetProjectUniqueName( options.BuildProject ));
+                    {
+                        string projUniqueName = GetProjectUniqueName(options.BuildProject);
+                        if( string.IsNullOrEmpty( projUniqueName ))
+                        {
+                            Console.WriteLine("ERROR: The specified project was not found in the solution.");
+                            returnValue = 1;
+                        }
+                        BuildProject(options.BuildSolutionConfiguration, projUniqueName);
+                    }
                     else
                         BuildSolutionConfiguration(options.BuildSolutionConfiguration);
                 }
@@ -124,6 +134,24 @@ namespace VsIdeBuild.VsBuilderLibrary
                 {
                     Console.WriteLine("ERROR: neither BuildAll or BuildSolutionConfiguration was specified");
                     returnValue = 1;
+                }
+            }
+
+            if (options.ShowBuild)
+            {
+                string buildOutput = GetOutputWindowText("Build");
+                if (!string.IsNullOrEmpty(buildOutput))
+                {
+                    Console.WriteLine("Build Output:");
+                    string[] buildLines = buildOutput.Split('\n');
+                    foreach (string line in buildLines)
+                    {
+                        Console.WriteLine(line);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Build Output: None");
                 }
             }
 
@@ -135,6 +163,8 @@ namespace VsIdeBuild.VsBuilderLibrary
 
             return returnValue;
         }
+
+
 
         private void PostBuildChecks()
         {
@@ -173,6 +203,9 @@ namespace VsIdeBuild.VsBuilderLibrary
             Console.WriteLine("Building " + solutionConfiguration2.Name + ":" + solutionConfiguration2.PlatformName);
             sln.SolutionBuild.Build(true);
             System.Threading.Thread.Sleep(1000);
+
+
+
             PostBuildChecks();
         }
 
@@ -461,7 +494,9 @@ namespace VsIdeBuild.VsBuilderLibrary
         {
             sln = dte.Solution;
             sln.Open(solutionFile);
+#if DEBUG
             Console.WriteLine("sln.IsOpen = " + sln.IsOpen);
+#endif
             return sln.IsOpen;
         }
 
@@ -475,19 +510,27 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// </summary>
         public void OpenVS()
         {
+#if DEBUG
             Console.WriteLine("Getting Type of Visual Studio...");
+#endif
             Type type = Type.GetTypeFromProgID("VisualStudio.DTE.9.0");
 
+#if DEBUG
             Console.WriteLine("Opening Visual Studio...");
+#endif
             visualStudio = Activator.CreateInstance(type, true);
 
             // See http://msdn.microsoft.com/en-us/library/ms228772.aspx
             MessageFilter.Register();
 
+#if DEBUG
             Console.WriteLine("Casting to DTE...");
+#endif
             dte = (DTE)visualStudio;
 
+#if DEBUG
             Console.WriteLine("Casting to DTE2...");
+#endif
             dte2 = (DTE2)visualStudio;
         }
 

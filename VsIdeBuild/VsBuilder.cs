@@ -190,9 +190,9 @@ namespace VsIdeBuild.VsBuilderLibrary
                     Console.WriteLine("ERROR: Crestron plugin did not run!");
                     Results.Failed = true;
                 }
-                else if (simplSharpOutput.IndexOf(crestronPluginSuccess) != -1)
+                else if (simplSharpOutput.IndexOf(crestronPluginSuccess) == -1)
                 {
-                    Console.WriteLine("ERROR: Crestron plugin failed!");
+                    Console.WriteLine("ERROR: Crestron plugin build failed!");
                     Results.Failed = true;
                 }
             }
@@ -275,14 +275,16 @@ namespace VsIdeBuild.VsBuilderLibrary
                 return;
             }
 
+            string buildConfig = slnCfg.Name + "|" + slnCfg.PlatformName;
+            Console.WriteLine("Activating solution configuration '" + buildConfig + "'");
+            slnCfg.Activate();
+
             if (options.Clean)
             {
-                Console.WriteLine("Cleaning solution configuration '" + slnCfg.Name + "' platform '" + slnCfg.PlatformName + "'");
+                Console.WriteLine("Cleaning solution configuration '" + buildConfig + "'");
                 sln.SolutionBuild.Clean(true);
                 System.Threading.Thread.Sleep(1000);
             }
-
-            string buildConfig = slnCfg.Name + "|" + slnCfg.PlatformName;
 
             Console.WriteLine("Building " + buildConfig + ":" + projectUniqueName);
             sln.SolutionBuild.BuildProject(buildConfig, projectUniqueName, true);

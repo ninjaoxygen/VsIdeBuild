@@ -41,6 +41,8 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// Build log message we look for to indicate sandbox failure
         /// </summary>
         private const string crestronSandboxFailureMessage = "was not prepared";
+        private const string crestronPluginStart = "Preparing SIMPL # Project";
+        private const string crestronPluginSuccess = "Prepared for use on a Crestron control system";
 
         private object visualStudio;
         private DTE dte;
@@ -164,8 +166,6 @@ namespace VsIdeBuild.VsBuilderLibrary
             return returnValue;
         }
 
-
-
         private void PostBuildChecks()
         {
             if (sln.SolutionBuild.LastBuildInfo != 0)
@@ -185,6 +185,21 @@ namespace VsIdeBuild.VsBuilderLibrary
                     Console.WriteLine("ERROR: Crestron sandbox failues in build!");
                     Results.Failed = true;
                 }
+                else if (simplSharpOutput.IndexOf(crestronPluginStart) == -1)
+                {
+                    Console.WriteLine("ERROR: Crestron plugin did not run!");
+                    Results.Failed = true;
+                }
+                else if (simplSharpOutput.IndexOf(crestronPluginSuccess) != -1)
+                {
+                    Console.WriteLine("ERROR: Crestron plugin failed!");
+                    Results.Failed = true;
+                }
+            }
+            else
+            {
+                Console.WriteLine("ERROR: Crestron plugin output not found!");
+                Results.Failed = true;
             }
         }
 
@@ -203,8 +218,6 @@ namespace VsIdeBuild.VsBuilderLibrary
             Console.WriteLine("Building " + solutionConfiguration2.Name + ":" + solutionConfiguration2.PlatformName);
             sln.SolutionBuild.Build(true);
             System.Threading.Thread.Sleep(1000);
-
-
 
             PostBuildChecks();
         }

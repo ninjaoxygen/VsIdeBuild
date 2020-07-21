@@ -41,6 +41,8 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// Build log message we look for to indicate sandbox failure
         /// </summary>
         private const string crestronSandboxFailureMessage = "was not prepared";
+        private const string crestronPluginStart = "Preparing SIMPL # Project";
+        private const string crestronPluginSuccess = "Prepared for use on a Crestron control system";
 
         private object visualStudio;
         private DTE dte;
@@ -71,19 +73,23 @@ namespace VsIdeBuild.VsBuilderLibrary
             dte.SuppressUI = !options.Debug;
             dte.UserControl = options.Debug;
 
-            if (!File.Exists(options.Solution))
+            // Resolve the solution absolute filepath
+            string absSolutionFilePath = ResolveSolutionName(options.Solution);
+
+            if (!File.Exists(absSolutionFilePath))
             {
                 Console.WriteLine("Solution file not found");
                 return 1;
             }
 
             Console.WriteLine("Opening Solution...");
-            if (!OpenSolution(options.Solution))
+            if (!OpenSolution(absSolutionFilePath))
             {
                 Console.WriteLine("Solution could not be opened");
                 return 2;
             }
 
+#if DEBUG
             Console.WriteLine("Solution.Count = " + sln.Count);
 
             Console.WriteLine("Projects Names...");
@@ -91,6 +97,7 @@ namespace VsIdeBuild.VsBuilderLibrary
             {
                 Console.WriteLine("Project: " + project.Name);
             }
+#endif
 
             if (options.ShowProjectContexts)
             {
@@ -112,12 +119,41 @@ namespace VsIdeBuild.VsBuilderLibrary
             {
                 if (options.BuildSolutionConfiguration != null)
                 {
-                    BuildSolutionConfiguration(options.BuildSolutionConfiguration);
+                    if (options.BuildProject != null)
+                    {
+                        string projUniqueName = GetProjectUniqueName(options.BuildProject);
+                        if( string.IsNullOrEmpty( projUniqueName ))
+                        {
+                            Console.WriteLine("ERROR: The specified project was not found in the solution.");
+                            returnValue = 1;
+                        }
+                        BuildProject(options.BuildSolutionConfiguration, projUniqueName);
+                    }
+                    else
+                        BuildSolutionConfiguration(options.BuildSolutionConfiguration);
                 }
                 else
                 {
                     Console.WriteLine("ERROR: neither BuildAll or BuildSolutionConfiguration was specified");
                     returnValue = 1;
+                }
+            }
+
+            if (options.ShowBuild)
+            {
+                string buildOutput = GetOutputWindowText("Build");
+                if (!string.IsNullOrEmpty(buildOutput))
+                {
+                    Console.WriteLine("Build Output:");
+                    string[] buildLines = buildOutput.Split('\n');
+                    foreach (string line in buildLines)
+                    {
+                        Console.WriteLine(line);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Build Output: None");
                 }
             }
 
@@ -149,6 +185,21 @@ namespace VsIdeBuild.VsBuilderLibrary
                     Console.WriteLine("ERROR: Crestron sandbox failues in build!");
                     Results.Failed = true;
                 }
+                else if (simplSharpOutput.IndexOf(crestronPluginStart) == -1)
+                {
+                    Console.WriteLine("ERROR: Crestron plugin did not run!");
+                    Results.Failed = true;
+                }
+                else if (simplSharpOutput.IndexOf(crestronPluginSuccess) == -1)
+                {
+                    Console.WriteLine("ERROR: Crestron plugin build failed!");
+                    Results.Failed = true;
+                }
+            }
+            else
+            {
+                Console.WriteLine("ERROR: Crestron plugin output not found!");
+                Results.Failed = true;
             }
         }
 
@@ -167,19 +218,32 @@ namespace VsIdeBuild.VsBuilderLibrary
             Console.WriteLine("Building " + solutionConfiguration2.Name + ":" + solutionConfiguration2.PlatformName);
             sln.SolutionBuild.Build(true);
             System.Threading.Thread.Sleep(1000);
+
             PostBuildChecks();
         }
 
-        private void BuildProject(string solutionConfigurationName, string projectUniqueName)
+        /// <summary>
+        /// Return the unique name for the given project name
+        /// This is required for single project builds
+        /// </summary>
+        /// <param name="projectName">The common project name</param>
+        /// <returns>The corresponding unique project name, or the empty string if not found.</returns>
+        private string GetProjectUniqueName(string projectName)
         {
-            sln.SolutionBuild.BuildProject(solutionConfigurationName, projectUniqueName, true);
-
-            System.Threading.Thread.Sleep(1000);
-
-            PostBuildChecks();
+            foreach (Project project in dte.Solution.Projects)
+            {
+                if (project.Name.ToLower() == projectName.ToLower())
+                    return project.UniqueName;
+            }
+            return string.Empty;
         }
 
-        private void BuildSolutionConfiguration(string solutionConfigurationName)
+        /// <summary>
+        /// Refactored solution matching
+        /// </summary>
+        /// <param name="solutionConfigurationName">The solution config passed as an option</param>
+        /// <returns>A matching solution config, or null if no matches</returns>
+        private EnvDTE80.SolutionConfiguration2 IdentifyMatchingSolution(string solutionConfigurationName)
         {
             EnvDTE.SolutionConfigurations solutionConfigurations;
 
@@ -192,13 +256,53 @@ namespace VsIdeBuild.VsBuilderLibrary
                 if (solutionConfiguration2.Name == solutionConfigurationName)
                 {
                     Console.WriteLine("Matches, building...");
-                    BuildSolutionConfiguration(solutionConfiguration2);
+                    return solutionConfiguration2;
                 }
                 else
                 {
                     Console.WriteLine("Does not match, skipping");
                 }
             }
+            return null;
+        }
+
+        private void BuildProject(string solutionConfigurationName, string projectUniqueName)
+        {
+            SolutionConfiguration2 slnCfg = IdentifyMatchingSolution( solutionConfigurationName );
+            if( slnCfg == null )
+            {
+                Console.WriteLine( "No configurations matching " + solutionConfigurationName + " found.");
+                return;
+            }
+
+            string buildConfig = slnCfg.Name + "|" + slnCfg.PlatformName;
+            Console.WriteLine("Activating solution configuration '" + buildConfig + "'");
+            slnCfg.Activate();
+
+            if (options.Clean)
+            {
+                Console.WriteLine("Cleaning solution configuration '" + buildConfig + "'");
+                sln.SolutionBuild.Clean(true);
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            Console.WriteLine("Building " + buildConfig + ":" + projectUniqueName);
+            sln.SolutionBuild.BuildProject(buildConfig, projectUniqueName, true);
+            System.Threading.Thread.Sleep(1000);
+
+            PostBuildChecks();
+        }
+
+        private void BuildSolutionConfiguration(string solutionConfigurationName)
+        {
+            SolutionConfiguration2 slnCfg = IdentifyMatchingSolution(solutionConfigurationName);
+            if (slnCfg == null)
+            {
+                Console.WriteLine("No configurations matching " + solutionConfigurationName + " found.");
+                return;
+            }
+
+            BuildSolutionConfiguration(slnCfg);
         }
 
         private void BuildAll()
@@ -389,11 +493,25 @@ namespace VsIdeBuild.VsBuilderLibrary
             }
         }
 
+        /// <summary>
+        /// Convert the given solution name to an absolute path, and add the .sln extension
+        /// </summary>
+        /// <param name="solutionFile">The solution filename from the arguments</param>
+        /// <returns>The absolute path to the full solution</returns>
+        private string ResolveSolutionName(string solutionFile)
+        {
+            string absPath = Path.GetDirectoryName(Path.GetFullPath(solutionFile));
+            string slnFileName = Path.GetFileNameWithoutExtension(solutionFile);
+            return Path.Combine(absPath, slnFileName + ".sln");
+        }
+
         public bool OpenSolution(string solutionFile)
         {
             sln = dte.Solution;
             sln.Open(solutionFile);
+#if DEBUG
             Console.WriteLine("sln.IsOpen = " + sln.IsOpen);
+#endif
             return sln.IsOpen;
         }
 
@@ -407,19 +525,27 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// </summary>
         public void OpenVS()
         {
+#if DEBUG
             Console.WriteLine("Getting Type of Visual Studio...");
+#endif
             Type type = Type.GetTypeFromProgID("VisualStudio.DTE.9.0");
 
+#if DEBUG
             Console.WriteLine("Opening Visual Studio...");
+#endif
             visualStudio = Activator.CreateInstance(type, true);
 
             // See http://msdn.microsoft.com/en-us/library/ms228772.aspx
             MessageFilter.Register();
 
+#if DEBUG
             Console.WriteLine("Casting to DTE...");
+#endif
             dte = (DTE)visualStudio;
 
+#if DEBUG
             Console.WriteLine("Casting to DTE2...");
+#endif
             dte2 = (DTE2)visualStudio;
         }
 

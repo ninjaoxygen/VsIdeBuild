@@ -71,6 +71,11 @@ namespace VsIdeBuild.VsBuilderLibrary
         public bool ShowProjectOutputs { get; set; }
 
         /// <summary>
+        /// Give detailed build output
+        /// </summary>
+        public bool ShowBuild { get; set; }
+
+        /// <summary>
         /// Filepath of Visual Studio 2008 solution file
         /// </summary>
         public string Solution { get; set; }

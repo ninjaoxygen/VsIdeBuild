@@ -5,7 +5,8 @@
  *
  * The MIT License
  *
- * Copyright © 2017 - 2019 AVSP Ltd
+ * Copyright © 2017 - 2020 AVSP Ltd
+ * Copyright © 2020 Oliver Hall, Ultamation Ltd
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

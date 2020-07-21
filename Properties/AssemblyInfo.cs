@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("AVSP Ltd")]
 [assembly: AssemblyProduct("VsIdeBuild")]
-[assembly: AssemblyCopyright("Copyright © 2017 - 2019 Chris Poole")]
+[assembly: AssemblyCopyright("Copyright © 2017 - 2020 Chris Poole")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -17,6 +17,12 @@ E-mail: chris@avsp.co.uk
 
 VsIdeBuild is Copyright © 2017 - 2019 AVSP Ltd
 
+## Contributors
+
+Many thanks for contributions from:
+
+Oliver Hall, Ultamation Ltd
+
 ## Command line parameters:
 
 ~~~

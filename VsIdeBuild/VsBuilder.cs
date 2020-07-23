@@ -123,15 +123,19 @@ namespace VsIdeBuild.VsBuilderLibrary
                     if (options.BuildProject != null)
                     {
                         string projUniqueName = GetProjectUniqueName(options.BuildProject);
-                        if( string.IsNullOrEmpty( projUniqueName ))
+
+                        if (string.IsNullOrEmpty(projUniqueName))
                         {
                             Console.WriteLine("ERROR: The specified project was not found in the solution.");
                             returnValue = 1;
                         }
+
                         BuildProject(options.BuildSolutionConfiguration, projUniqueName);
                     }
                     else
+                    {
                         BuildSolutionConfiguration(options.BuildSolutionConfiguration);
+                    }
                 }
                 else
                 {
@@ -143,10 +147,13 @@ namespace VsIdeBuild.VsBuilderLibrary
             if (options.ShowBuild)
             {
                 string buildOutput = GetOutputWindowText("Build");
+
                 if (!string.IsNullOrEmpty(buildOutput))
                 {
                     Console.WriteLine("Build Output:");
+                    
                     string[] buildLines = buildOutput.Split('\n');
+
                     foreach (string line in buildLines)
                     {
                         Console.WriteLine(line);
@@ -177,21 +184,21 @@ namespace VsIdeBuild.VsBuilderLibrary
             }
 
             // Crestron SDK does not report sandbox failure as a failed build, because it is in a post-build step, so detect it separately
-            string simplSharpOutput = GetOutputWindowText("Build");
+            string buildOutput = GetOutputWindowText("Build");
 
-            if (simplSharpOutput != null)
+            if (buildOutput != null)
             {
-                if (simplSharpOutput.IndexOf(crestronSandboxFailureMessage) != -1)
+                if (buildOutput.IndexOf(crestronSandboxFailureMessage) != -1)
                 {
-                    Console.WriteLine("ERROR: Crestron sandbox failues in build!");
+                    Console.WriteLine("ERROR: Crestron sandbox failures in build!");
                     Results.Failed = true;
                 }
-                else if (simplSharpOutput.IndexOf(crestronPluginStart) == -1)
+                else if (options.Crestron && (buildOutput.IndexOf(crestronPluginStart) == -1))
                 {
                     Console.WriteLine("ERROR: Crestron plugin did not run!");
                     Results.Failed = true;
                 }
-                else if (simplSharpOutput.IndexOf(crestronPluginSuccess) == -1)
+                else if (options.Crestron && (buildOutput.IndexOf(crestronPluginSuccess) == -1))
                 {
                     Console.WriteLine("ERROR: Crestron plugin build failed!");
                     Results.Failed = true;
@@ -199,8 +206,11 @@ namespace VsIdeBuild.VsBuilderLibrary
             }
             else
             {
-                Console.WriteLine("ERROR: Crestron plugin output not found!");
-                Results.Failed = true;
+                if (options.Crestron)
+                {
+                    Console.WriteLine("ERROR: Crestron plugin output not found!");
+                    Results.Failed = true;
+                }
             }
         }
 
@@ -269,10 +279,10 @@ namespace VsIdeBuild.VsBuilderLibrary
 
         private void BuildProject(string solutionConfigurationName, string projectUniqueName)
         {
-            SolutionConfiguration2 slnCfg = IdentifyMatchingSolution( solutionConfigurationName );
-            if( slnCfg == null )
+            SolutionConfiguration2 slnCfg = IdentifyMatchingSolution(solutionConfigurationName);
+            if (slnCfg == null)
             {
-                Console.WriteLine( "No configurations matching " + solutionConfigurationName + " found.");
+                Console.WriteLine("No configurations matching " + solutionConfigurationName + " found.");
                 return;
             }
 

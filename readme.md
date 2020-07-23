@@ -15,7 +15,7 @@ E-mail: chris@avsp.co.uk
 
 ## Copyright
 
-VsIdeBuild is Copyright © 2017 - 2019 AVSP Ltd
+VsIdeBuild is Copyright (C) 2017 - 2020 AVSP Ltd
 
 ## Contributors
 
@@ -27,31 +27,33 @@ Oliver Hall, Ultamation Ltd
 
 ~~~
 	-Solution
-		Specify VS sln file to work on
+		Specify Visual Studio 2008 .sln file to work on. Relative or absolute paths are acceptable, the .sln can be omitted.
 
 	-Clean
-		Cleans before build.
-		This does not work with BuildProject - VS2008 only supports simple cleaning of enitre solution configurations
+		Cleans before build. This does not work with BuildProject - VS2008 only supports simple cleaning of enitre solution configurations.
 
 	-BuildAll
-		Builds all solution configurations, using their project build settings for each configuration
+		Builds all solution configurations, using their project build settings for each configuration.
 		
 	-BuildSolutionConfiguration
-		Build a single solution configuration, e.g. Debug or Release
+		Build a single solution configuration, e.g. Debug or Release.
 
 	-BuildProject
-		Build a single project, also needs -BuildSolutionConfiguration to be specified
+		Build a single project, also needs -BuildSolutionConfiguration to be specified.
 
 	-ShowProjectContexts
-		Outputs all available project names and configurations
+		Outputs all available project names and configurations.
 
 	-Debug
-		Will not hide the Visual Studio window that is opened, will allow user interaction with that window
+		Will not hide the Visual Studio window that is opened, will allow user interaction with that window.
+
+	-Crestron
+	  Enable checks to ensure the Crestron SDK plugin intialised and completed. Without this option, only Crestron sandbox failures will be detected.
 ~~~
 		
 ## Examples
 		
-Build just the Debug configuration of project ConsoleApp in Sample.sln
+Build only the Debug configuration of project ConsoleApp in Sample.sln
 ~~~
 VsIdeBuild -Solution "C:\Test\Sample.sln" -BuildSolutionConfiguration "Debug" -BuildProject "ConsoleApp"
 ~~~
@@ -71,7 +73,7 @@ VsIdeBuild -Solution "C:\Test\Sample.sln" -Clean -BuildAll
 
 The MIT License
 
-Copyright © 2017 AVSP Ltd
+Copyright (C) 2017 - 2020 AVSP Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

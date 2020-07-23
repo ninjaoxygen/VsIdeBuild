@@ -47,6 +47,11 @@ namespace VsIdeBuild.VsBuilderLibrary
         public bool Clean { get; set; }
 
         /// <summary>
+        /// Perform additional checks to ensure the Crestron SDK plugin loaded and completed
+        /// </summary>
+        public bool Crestron { get; set; }
+
+        /// <summary>
         /// Build Solution in every available configuration
         /// </summary>
         public bool BuildAll { get; set; }

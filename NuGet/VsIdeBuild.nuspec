@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+	<metadata>
+		<id>VsIdeBuild</id>
+		<version>1.0.1</version>
+		<authors>ChrisPoole</authors>
+		<owners>ChrisPoole</owners>
+		<license type="expression">MIT</license>
+		<projectUrl>https://github.com/ninjaoxygen/VsIdeBuild</projectUrl>
+		<icon>images\icon.png</icon>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>VsIdeBuild is a command line tool to automate the Visual Studio 2008 IDE to build solutions.</description>
+		<releaseNotes>Initial release</releaseNotes>
+		<copyright>Copyright 2017 - 2020 AVSP Ltd</copyright>
+		<tags>VsIdeBuild crestron simpl# simpl#pro avsp</tags>
+	</metadata>
+	<files>
+		<file src="..\bin\Release\VsIdeBuild.exe" target="tools" />
+		<file src="..\images\icon.png" target="images\" />
+	</files>
+</package>

@@ -7,7 +7,9 @@ This is necessary when GUI IDE plugins are required for the build process, for e
 
 ## Downloads
 
-The latest binary release is available from https://github.com/ninjaoxygen/VsIdeBuild/releases
+The latest binary release is available as a nuget package from https://www.nuget.org/packages/VsIdeBuild/
+
+Other release binaries are available from https://github.com/ninjaoxygen/VsIdeBuild/releases
 
 ## Contact
 

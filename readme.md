@@ -46,6 +46,12 @@ Oliver Hall, Ultamation Ltd
 	-ShowProjectContexts
 		Outputs all available project names and configurations.
 
+	-ShowProjectOutputs
+		Outputs all properties of all projects in the solution
+
+	-ShowBuild
+		Returns all build output from VS2008 and the Crestron SDK plugin, sandbox failures will show up here
+
 	-Debug
 		Will not hide the Visual Studio window that is opened, will allow user interaction with that window.
 

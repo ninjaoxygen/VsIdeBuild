@@ -129,8 +129,8 @@ namespace VsIdeBuild.VsBuilderLibrary
                             Console.WriteLine("ERROR: The specified project was not found in the solution.");
                             returnValue = 1;
                         }
-
-                        BuildProject(options.BuildSolutionConfiguration, projUniqueName);
+                        else
+                            BuildProject(options.BuildSolutionConfiguration, projUniqueName);
                     }
                     else
                     {
@@ -241,11 +241,52 @@ namespace VsIdeBuild.VsBuilderLibrary
         /// <returns>The corresponding unique project name, or the empty string if not found.</returns>
         private string GetProjectUniqueName(string projectName)
         {
+#if DEBUG
+            Console.WriteLine("Looking for project: {0}", projectName);
+#endif
             foreach (Project project in dte.Solution.Projects)
             {
-                if (project.Name.ToLower() == projectName.ToLower())
-                    return project.UniqueName;
+                string uniqueName = GetProjectUniqueName(projectName, project);
+                if (!string.IsNullOrEmpty(uniqueName))
+                    return uniqueName;
             }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// This is a recursive form of GetProjectUniqueName which checks for sub projects - which is encountered when projects are organised into folders!
+        /// </summary>
+        /// <param name="projectName">The project name to look for</param>
+        /// <param name="projs">The project collection to search, recursively</param>
+        /// <returns>A project unique name or the empty string</returns>
+        private string GetProjectUniqueName(string projectName, Project project)
+        {
+#if DEBUG
+            Console.WriteLine("Checking project: {0} => {1}", project.Name, project.UniqueName);
+#endif
+            if (project.Name.ToLower() == projectName.ToLower())
+                return project.UniqueName;
+            else
+            {
+                if ((project.ProjectItems != null) && (project.ProjectItems.Count > 0))
+                {
+                    foreach (ProjectItem projItem in project.ProjectItems)
+                    {
+                        if (projItem.SubProject != null)
+                        {
+                            string uniqueName = GetProjectUniqueName(projectName, projItem.SubProject);
+                            if (!string.IsNullOrEmpty(uniqueName))
+                                return uniqueName;
+#if DEBUG
+                            else
+                            {
+                                Console.WriteLine("Skipping item...");
+                            }
+#endif
+                        }
+                    }
+                }
+            }           
             return string.Empty;
         }
 
